@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
+<!--
+=============================================================================
+com.user.brewupdate.plist
+Spike & Chilli Home Network (E2) — Homebrew Auto-Update Agent
+=============================================================================
+
+WHAT:   Fires brew-update.sh daily at 03:00.
+        Actions: brew update → brew upgrade → brew cleanup
+
+NOT:    Does NOT run brew bundle. Package management is intentional & manual.
+
+IDENTICAL ON ALL THREE MACS — no per-machine edits needed.
+brew-update.sh auto-detects the correct brew binary at runtime.
+
+INSTALLATION:
+  1. Deploy script (from repo root):
+       sudo cp scripts/brew-update.sh /usr/local/bin/brew-update.sh
+       sudo chmod 755 /usr/local/bin/brew-update.sh
+
+  2. Copy plist:
+       cp launchd/com.user.brewupdate.plist ~/Library/LaunchAgents/
+
+  3. Load:
+       launchctl load ~/Library/LaunchAgents/com.user.brewupdate.plist
+
+  4. Verify:
+       launchctl list | grep brewupdate
+
+MANUAL TEST (don't wait for 03:00):
+  launchctl kickstart gui/$(id -u)/com.user.brewupdate
+  tail -f ~/Library/Logs/brew-update.log
+
+RELOAD AFTER PLIST EDITS:
+  launchctl unload ~/Library/LaunchAgents/com.user.brewupdate.plist
+  launchctl load   ~/Library/LaunchAgents/com.user.brewupdate.plist
+
+NOTE: User agents fire only while the user session is active. If the Mac
+is asleep at 03:00 the job fires at next wake — this is expected behaviour
+for a home Mac. ThrottleInterval prevents double-fire within the window.
+=============================================================================
+-->
+
+<plist version="1.0">
+<dict>
+
+    <key>Label</key>
+    <string>com.user.brewupdate</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/usr/local/bin/brew-update.sh</string>
+    </array>
+
+    <!-- Fire daily at 03:00 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- Prevent double-fire within 1 hour (e.g. wake from sleep near 03:00) -->
+    <key>ThrottleInterval</key>
+    <integer>3600</integer>
+
+    <!-- launchd captures stdout/stderr from last run only -->
+    <key>StandardOutPath</key>
+    <string>/tmp/brewupdate.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/brewupdate.err</string>
+
+</dict>
+</plist>

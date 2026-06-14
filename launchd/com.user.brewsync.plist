@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
+<!--
+=============================================================================
+com.user.brewsync.plist
+Spike & Chilli Home Network (E2) — Homebrew Brewfile Sync Agent
+=============================================================================
+
+WHAT:   Fires brew-sync.sh weekly on Sunday at 02:00.
+        Dumps Brewfile.<ComputerName> to the NAS BrewSync folder.
+
+NOT:    Does NOT install packages. Does NOT modify other machines.
+
+IDENTICAL ON ALL THREE MACS — brew-sync.sh auto-detects everything.
+
+INSTALLATION: same as com.user.brewupdate.plist — substitute 'brewsync'.
+
+MANUAL TEST:
+  launchctl kickstart gui/$(id -u)/com.user.brewsync
+  tail -f ~/Library/Logs/brew-sync.log
+  ls "/Volumes/home/Drive/Projects/Home Network Project/BrewSync/"
+
+NOTE: Runs Sunday 02:00, after Saturday night's brew-update (daily 03:00
+runs Friday→Saturday night). Offset ensures update completes before sync
+captures the latest state.
+=============================================================================
+-->
+
+<plist version="1.0">
+<dict>
+
+    <key>Label</key>
+    <string>com.user.brewsync</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/usr/local/bin/brew-sync.sh</string>
+    </array>
+
+    <!-- Fire weekly: Sunday (Weekday=0) at 02:00 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>0</integer>
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- Prevent double-fire within 10 minutes -->
+    <key>ThrottleInterval</key>
+    <integer>600</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/brewsync.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/brewsync.err</string>
+
+</dict>
+</plist>
