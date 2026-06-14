@@ -108,17 +108,17 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-echo "  Running: brew bundle --no-upgrade --no-lock --verbose"
+echo "  Running: brew bundle --no-upgrade --verbose"
 echo "  (installs missing packages only; does not upgrade existing ones)"
 echo ""
 
 # --no-upgrade: don't upgrade packages already installed but outdated
-# --no-lock:    don't write Brewfile.lock.json
+#:    don't write Brewfile.lock.json
 # --verbose:    show each package as it's processed
 if "$BREW" bundle \
     --file="$SHARED_BREWFILE" \
     --no-upgrade \
-    --no-lock \
+    \
     --verbose 2>&1; then
     echo ""
     echo "  ✓ brew bundle complete"
