@@ -2,8 +2,9 @@
 **Spike & Chilli Home Network · E2 Mac Utilities**
 
 Automated Homebrew maintenance across three Macs. Keeps formulae and
-casks current, snapshots each machine's Brewfile weekly to the NAS, and
-provides a manual tool for installing a curated shared package baseline.
+casks current, snapshots each machine's Brewfile weekly to the NAS,
+syncs a curated shared Brewfile across the two Apple Silicon Macs,
+and sends a weekly HTML diff email summarising any divergence.
 
 ---
 
@@ -17,37 +18,58 @@ provides a manual tool for installing a curated shared package baseline.
 
 Scripts auto-detect the brew path at runtime. **MZMacMini will always
 be on an older macOS** (Intel CPU; cannot upgrade to match Apple Silicon
-versions). Individual package upgrade failures are expected and non-fatal.
-Curate the shared Brewfile accordingly.
+versions). Individual upgrade failures are expected and non-fatal.
+Curate the shared Brewfile to exclude packages requiring newer macOS.
 
 ---
 
-## How it works
+## Scripts
 
-| Script | Trigger | What it does |
-|---|---|---|
-| `brew-update.sh` | launchd daily 03:00 | update + upgrade + cleanup |
-| `brew-sync.sh` | launchd weekly Sun 02:00 | dump `Brewfile.<MachineName>` to NAS |
-| `brew-bundle-install.sh` | **manual only** | install from shared Brewfile |
+| Script | Trigger | Machine(s) | What it does |
+|---|---|---|---|
+| `brew-update.sh` | launchd daily 03:00 | all 3 | update + upgrade + cleanup |
+| `brew-sync.sh` | launchd weekly Sun 02:00 | all 3 | dump `Brewfile.<MachineName>` to NAS |
+| `brew-bundle-install.sh` | **manual only** | all 3 | install from shared Brewfile on this Mac |
+| `sync-macs.sh` | **manual only** | MacBook or Mini | install shared Brewfile on BOTH Macs via SSH |
+| `brew-diff-email.sh` | launchd weekly Sun 04:00 | MacBook only | diff both Brewfiles, send HTML email |
+| `migrate-brewfiles.sh` | one-time (done) | — | moved Brewfiles from old NAS path to network-ops |
 
-### Code vs data
+---
+
+## Code vs data
 
 This repo contains **code** (scripts, plists). Brewfiles are **data** and
-live on the NAS:
+live on the NAS network-ops share:
 
 ```
-/Volumes/home/Drive/Projects/Home Network Project/BrewSync/
-├── Brewfile                    ← shared curated baseline — edit this manually
-├── Brewfile.NLMacMiniM1        ← auto-generated weekly
-├── Brewfile.NLMacbookProM3     ← auto-generated weekly
-└── Brewfile.MZMacMini          ← auto-generated weekly
+/Volumes/network-ops/data/brew-sync/
+├── Brewfile                    ← shared curated baseline — edit manually
+├── Brewfile.NLMacMiniM1        ← auto-generated weekly by brew-sync.sh
+└── Brewfile.NLMacbookProM3     ← auto-generated weekly by brew-sync.sh
 ```
 
-MacBook fallback when away from home:
+`/Volumes/network-ops` is a NAS share mounted by `mount-nas-locations`.
+It is not backed up — contents are regenerable.
+
+If the MacBook is away from home and `/Volumes/network-ops` is not
+mounted, `brew-sync.sh` skips the dump and logs one line to
+`~/Library/Logs/brew-sync/away.log`. `brew-update.sh` still runs
+(update/upgrade/cleanup) but logs locally to `~/Library/Logs/brew-update/`.
+
+---
+
+## Logs
+
+All logs go to `/Volumes/network-ops/logs/` using the house naming convention:
+
 ```
-~/Library/CloudStorage/SynologyDrive-NASHome/Drive/
-    Projects/Home Network Project/BrewSync/
+brew_<MACHINE>_<task>_<YYYY-MM-DD-HHMM>.log
 ```
+
+Rotation: `sync`=15, `update`=20, `diff`=15, `syncmacs`=10 per machine.
+
+`brew-update.sh` falls back to `~/Library/Logs/brew-update/` when
+network-ops is not mounted; rotation applies to whichever dir is active.
 
 ---
 
@@ -55,143 +77,130 @@ MacBook fallback when away from home:
 
 | Remote | URL |
 |---|---|
-| `origin` | `https://github.com/<username>/brew-sync` |
-| `nas` | `ssh://nickleigh@Spike-Chilli/volume1/git/brew-sync.git` |
+| `origin` | `https://github.com/nickleigh78/brew-sync.git` |
+| `nas` | `ssh://nickleigh@spike-chilli.local/volume1/git/brew-sync.git` |
 
 ---
 
-## One-time setup (run once from NLMacMiniM1)
+## Deployment status
 
-### 1. Create NAS BrewSync data folder
+| Machine | Scripts | Plists loaded | Notes |
+|---|---|---|---|
+| NLMacbookProM3 | all 6 in `/usr/local/bin/` | brewsync, brewupdate, brewdiff | Primary machine; diff email runs here |
+| NLMacMiniM1 | 4 in `/usr/local/bin/` | brewsync, brewupdate | No brew-diff-email (MacBook sends) |
+| MZMacMini | brew-sync.sh, brew-update.sh | brewsync, brewupdate | scp deploy only — no git repo |
 
-```bash
-mkdir -p "/Volumes/home/Drive/Projects/Home Network Project/BrewSync"
-touch "/Volumes/home/Drive/Projects/Home Network Project/BrewSync/Brewfile"
-```
-
-Edit the shared `Brewfile` to your curated common package list. Start
-lean — add packages that all three Macs should share. Exclude anything
-that requires a macOS version newer than MZMacMini can run.
-
-### 2. Create NAS bare remote
-
-```bash
-ssh nickleigh@Spike-Chilli "git init --bare /volume1/git/brew-sync.git"
-```
-
-### 3. Clone the repo (or init from this directory)
-
-```bash
-cd ~/Projects/Home-Network
-git clone https://github.com/<username>/brew-sync.git
-# or if starting from scratch:
-git init brew-sync && cd brew-sync
-git remote add origin https://github.com/<username>/brew-sync.git
-git remote add nas ssh://nickleigh@Spike-Chilli/volume1/git/brew-sync.git
-```
+SSH key auth is configured between MacBook and Mini (no password prompts).
 
 ---
 
-## Deployment — per Mac
+## Deploying script updates
 
-Run these steps on each Mac: NLMacMiniM1, NLMacbookProM3, MZMacMini.
-
-### 1. Deploy scripts to /usr/local/bin/
+### NLMacbookProM3 / NLMacMiniM1
 
 ```bash
+# After pulling latest changes on MacBook:
 sudo cp scripts/brew-update.sh         /usr/local/bin/brew-update.sh
 sudo cp scripts/brew-sync.sh           /usr/local/bin/brew-sync.sh
 sudo cp scripts/brew-bundle-install.sh /usr/local/bin/brew-bundle-install.sh
-sudo chmod 755 \
-    /usr/local/bin/brew-update.sh \
-    /usr/local/bin/brew-sync.sh \
-    /usr/local/bin/brew-bundle-install.sh
+sudo cp scripts/sync-macs.sh           /usr/local/bin/sync-macs.sh
+sudo cp scripts/brew-diff-email.sh     /usr/local/bin/brew-diff-email.sh
+sudo chmod 755 /usr/local/bin/brew-{update,sync,bundle-install,diff-email}.sh \
+               /usr/local/bin/sync-macs.sh
+
+# Deploy to Mini via scp (no git repo on Mini):
+scp scripts/brew-update.sh scripts/brew-sync.sh \
+    scripts/brew-bundle-install.sh scripts/sync-macs.sh \
+    nickleigh@NLMacMiniM1.local:/tmp/
+ssh -t nickleigh@NLMacMiniM1.local \
+    "sudo cp /tmp/brew-update.sh /tmp/brew-sync.sh \
+             /tmp/brew-bundle-install.sh /tmp/sync-macs.sh \
+             /usr/local/bin/ && \
+     sudo chmod 755 /usr/local/bin/brew-{update,sync,bundle-install}.sh \
+                    /usr/local/bin/sync-macs.sh"
 ```
 
-### 2. Load launchd agents
+### MZMacMini (Intel — scp only)
 
 ```bash
+scp scripts/brew-update.sh scripts/brew-sync.sh \
+    nickleigh@MZMacMini.local:/tmp/
+ssh -t nickleigh@MZMacMini.local \
+    "sudo cp /tmp/brew-update.sh /tmp/brew-sync.sh /usr/local/bin/ && \
+     sudo chmod 755 /usr/local/bin/brew-{update,sync}.sh"
+```
+
+---
+
+## Loading launchd agents (first-time or after plist changes)
+
+```bash
+# MacBook / Mini (adjust list per machine — Mini has no brewdiff)
 cp launchd/com.user.brewupdate.plist ~/Library/LaunchAgents/
 cp launchd/com.user.brewsync.plist   ~/Library/LaunchAgents/
+cp launchd/com.user.brewdiff.plist   ~/Library/LaunchAgents/  # MacBook only
+
 launchctl load ~/Library/LaunchAgents/com.user.brewupdate.plist
 launchctl load ~/Library/LaunchAgents/com.user.brewsync.plist
-```
+launchctl load ~/Library/LaunchAgents/com.user.brewdiff.plist  # MacBook only
 
-### 3. Verify agents loaded
-
-```bash
-launchctl list | grep -E 'brew(update|sync)'
-```
-
-Expected: two rows with PID (if running) or `-` (waiting for schedule).
-
-### 4. Test immediately
-
-```bash
-# Test update (runs brew update + upgrade + cleanup)
-launchctl kickstart gui/$(id -u)/com.user.brewupdate
-sleep 5 && tail -20 ~/Library/Logs/brew-update.log
-
-# Test sync (requires NAS mounted)
-launchctl kickstart gui/$(id -u)/com.user.brewsync
-sleep 10 && tail -20 ~/Library/Logs/brew-sync.log
-```
-
-Expected after sync: `Brewfile.<ComputerName>` appears in the NAS BrewSync folder.
-
-### 5. First manual sync
-
-```bash
-bash /usr/local/bin/brew-sync.sh
-ls "/Volumes/home/Drive/Projects/Home Network Project/BrewSync/"
+# Verify
+launchctl list | grep com.user.brew
 ```
 
 ---
 
 ## Ongoing operations
 
-### Checking logs
+### Check logs
 
 ```bash
-tail -50 ~/Library/Logs/brew-update.log
-tail -50 ~/Library/Logs/brew-sync.log
+ls -1t /Volumes/network-ops/logs/brew_$(scutil --get ComputerName)_*.log | head -5
+tail -50 $(ls -1t /Volumes/network-ops/logs/brew_$(scutil --get ComputerName)_sync_*.log | head -1)
 ```
 
-### Installing from the shared Brewfile
+### Edit shared Brewfile
 
 ```bash
-# Edit the shared Brewfile first (on NAS, accessible from any Mac):
-open "/Volumes/home/Drive/Projects/Home Network Project/BrewSync/Brewfile"
+open /Volumes/network-ops/data/brew-sync/Brewfile
+# or: nano /Volumes/network-ops/data/brew-sync/Brewfile
+```
 
-# Then install on whichever Mac you want to add packages to:
+### Sync shared Brewfile to both Macs
+
+```bash
+bash /usr/local/bin/sync-macs.sh
+```
+
+### Install from shared Brewfile (this Mac only)
+
+```bash
 bash /usr/local/bin/brew-bundle-install.sh
 ```
 
-### Updating scripts after repo changes
+### VS Code extensions
 
-Re-run the `sudo cp` block from step 1 on each Mac. Launchd agents do not
-need to be reloaded unless the plist itself changed.
+VS Code extensions are included in the shared Brewfile as `vscode "..."` lines.
+For these to work on a Mac, VS Code must be installed via Homebrew:
+
+```bash
+brew list --cask | grep visual-studio-code  # confirm it's brew-managed
+# If not: brew reinstall --cask visual-studio-code
+```
 
 ### Reloading agents after plist changes
 
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.user.brewupdate.plist
 launchctl load   ~/Library/LaunchAgents/com.user.brewupdate.plist
-
-launchctl unload ~/Library/LaunchAgents/com.user.brewsync.plist
-launchctl load   ~/Library/LaunchAgents/com.user.brewsync.plist
 ```
 
 ---
 
 ## MZMacMini notes
 
-Marty's Mac Mini is Intel and permanently on an older macOS version.
-When deploying there:
-
-- `brew upgrade` will warn or fail on individual packages that have
-  dropped support for older macOS. This is logged and non-fatal.
-- Curate the shared `Brewfile` to exclude packages that require newer
-  macOS. Add a comment in the Brewfile noting the exclusion.
-- MAS (Mac App Store) entries in the shared Brewfile require Marty's
-  Apple ID — remove or exclude these if they differ from Nick's.
+- Intel, permanently on an older macOS — individual upgrade failures non-fatal
+- No git repo — deploy scripts via scp (see Deploying section above)
+- Does not mount `/Volumes/network-ops` (Nick-only share)
+- `brew-sync.sh` and `brew-update.sh` only; no sync-macs or diff email
+- Brewfiles for MZMacMini not yet migrated to network-ops (separate future task)

@@ -83,7 +83,9 @@ ls -1t /Volumes/network-ops/logs/brew_NLMacMiniM1_sync_*.log | head -1 | xargs t
 - /Volumes/network-ops required for brew-sync.sh, brew-bundle-install.sh,
   sync-macs.sh, and brew-diff-email.sh. mount-nas-locations handles mounting.
 - sync-macs.sh requires network-ops mounted on BOTH Macs (each reads the
-  shared Brewfile from its own local mount). SSH password required.
+  shared Brewfile from its own local mount). SSH key auth configured — no
+  password prompt. VS Code must be brew-managed on the remote Mac
+  (brew reinstall --cask visual-studio-code if extensions fail).
 
 ## Remotes
 
