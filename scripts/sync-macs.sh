@@ -12,7 +12,7 @@
 #   NLMacMiniM1     → installs locally, then SSHes to NLMacbookProM3
 #   NLMacbookProM3  → installs locally, then SSHes to NLMacMiniM1
 #
-# SSH requires a password prompt (key-based auth not yet configured).
+# SSH uses key-based auth (no password prompt).
 # /Volumes/network-ops must be mounted on BOTH Macs for this to work
 # (each Mac reads the shared Brewfile from its own mount).
 #
@@ -116,11 +116,12 @@ else
 fi
 
 echo ""
-log "→ Installing on $SSH_HOST (SSH — password prompt below)..."
+log "→ Installing on $SSH_HOST (SSH)..."
 echo ""
 
 # Remote install — network-ops must also be mounted on the remote Mac
 ssh "$SSH_TARGET" bash << 'REMOTE' 2>&1 | tee -a "$LOG_FILE"
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 BREW="/opt/homebrew/bin/brew"
 SHARED_BREWFILE="/Volumes/network-ops/data/brew-sync/Brewfile"
 if [ ! -f "$SHARED_BREWFILE" ]; then
