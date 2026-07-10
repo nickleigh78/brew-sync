@@ -19,8 +19,7 @@ INSTALLATION: same as com.user.brewupdate.plist — substitute 'brewsync'.
 
 MANUAL TEST:
   launchctl kickstart gui/$(id -u)/com.user.brewsync
-  tail -f ~/Library/Logs/brew-sync.log
-  ls "/Volumes/home/Drive/Projects/Home Network Project/BrewSync/"
+  ls -1t /Volumes/network-ops/logs/brew_*_sync_*.log | head -1 | xargs tail
 
 NOTE: Runs Sunday 02:00, after Saturday night's brew-update (daily 03:00
 runs Friday→Saturday night). Offset ensures update completes before sync
