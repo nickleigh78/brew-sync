@@ -10,12 +10,12 @@
 #
 # The shared Brewfile is a manually maintained common baseline.
 # It is separate from the auto-generated Brewfile.<MachineName> files.
-# Edit it directly at the NAS path before running this script.
+# Edit it directly at the network-ops path before running this script.
 #
-# Shared Brewfile location (tried in order):
-#   LAN:  /Volumes/home/Drive/Projects/Home Network Project/BrewSync/Brewfile
-#   Away: ~/Library/CloudStorage/SynologyDrive-NASHome/Drive/
-#             Projects/Home Network Project/BrewSync/Brewfile
+# Shared Brewfile location:
+#   /Volumes/network-ops/data/brew-sync/Brewfile
+#
+# Requires /Volumes/network-ops to be mounted.
 #
 # MZMacMini curation note: MZMacMini is Intel and permanently on an older
 # macOS version. Packages that require a newer macOS should be excluded from
@@ -27,9 +27,7 @@
 #   bash /usr/local/bin/brew-bundle-install.sh
 # =============================================================================
 
-NAS_BREWDIR="/Volumes/home/Drive/Projects/Home Network Project/BrewSync"
-DRIVE_BREWDIR="$HOME/Library/CloudStorage/SynologyDrive-NASHome/Drive/Projects/Home Network Project/BrewSync"
-
+BREWDIR="/Volumes/network-ops/data/brew-sync"
 MACHINE="$(scutil --get ComputerName 2>/dev/null || echo "unknown")"
 
 echo ""
@@ -38,6 +36,15 @@ echo "  brew-bundle-install — Spike & Chilli (E2)"
 echo "  Machine: $MACHINE"
 echo "══════════════════════════════════════════════"
 echo ""
+
+# ---------------------------------------------------------------------------
+# Guard: network-ops must be mounted
+# ---------------------------------------------------------------------------
+if [ ! -d "$BREWDIR" ]; then
+    echo "✗ /Volumes/network-ops not mounted"
+    echo "  Ensure NAS is mounted: bash /usr/local/bin/mount-nas.sh"
+    exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Detect brew binary
@@ -54,26 +61,20 @@ fi
 # ---------------------------------------------------------------------------
 # Locate shared Brewfile
 # ---------------------------------------------------------------------------
-if [ -f "$NAS_BREWDIR/Brewfile" ]; then
-    SHARED_BREWFILE="$NAS_BREWDIR/Brewfile"
-    echo "  Source: LAN ($SHARED_BREWFILE)"
-elif [ -f "$DRIVE_BREWDIR/Brewfile" ]; then
-    SHARED_BREWFILE="$DRIVE_BREWDIR/Brewfile"
-    echo "  Source: Synology Drive / away ($SHARED_BREWFILE)"
-else
-    echo "✗ Shared Brewfile not found."
-    echo "  Tried: $NAS_BREWDIR/Brewfile"
-    echo "  Tried: $DRIVE_BREWDIR/Brewfile"
+SHARED_BREWFILE="$BREWDIR/Brewfile"
+if [ ! -f "$SHARED_BREWFILE" ]; then
+    echo "✗ Shared Brewfile not found at $SHARED_BREWFILE"
     echo ""
     echo "  To create it:"
-    echo "    touch \"$NAS_BREWDIR/Brewfile\""
-    echo "  Then add packages (one per line, e.g. 'brew \"git\"') and re-run."
+    echo "    touch \"$SHARED_BREWFILE\""
+    echo "  Then add packages (e.g. 'brew \"git\"') and re-run."
     exit 1
 fi
 
+echo "  Source: $SHARED_BREWFILE"
 echo ""
 echo "  Packages in shared Brewfile:"
-grep -E '^(tap|brew|cask|mas) ' "$SHARED_BREWFILE" \
+grep -E '^(tap|brew|cask|mas|vscode) ' "$SHARED_BREWFILE" \
     | sed 's/^/    /' \
     || echo "    (empty — no packages defined yet)"
 echo ""
@@ -112,13 +113,9 @@ echo "  Running: brew bundle --no-upgrade --verbose"
 echo "  (installs missing packages only; does not upgrade existing ones)"
 echo ""
 
-# --no-upgrade: don't upgrade packages already installed but outdated
-#:    don't write Brewfile.lock.json
-# --verbose:    show each package as it's processed
 if "$BREW" bundle \
     --file="$SHARED_BREWFILE" \
     --no-upgrade \
-    \
     --verbose 2>&1; then
     echo ""
     echo "  ✓ brew bundle complete"
