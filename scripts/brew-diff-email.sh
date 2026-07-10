@@ -258,7 +258,7 @@ set htmlPath to "$HTML_FILE"
 set htmlContent to do shell script "cat " & quoted form of htmlPath
 tell application "Mail"
     set newMsg to make new outgoing message with properties ¬
-        {subject:"$SUBJECT_ESCAPED", content:htmlContent, visible:false}
+        {subject:"$SUBJECT_ESCAPED", html content:htmlContent, sender:"$EMAIL", visible:false}
     tell newMsg
         make new to recipient with properties {address:"$EMAIL"}
         send
