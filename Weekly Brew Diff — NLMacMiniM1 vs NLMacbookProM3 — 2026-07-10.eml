@@ -1,0 +1,260 @@
+From: nickleigh78@gmail.com
+Content-Type: multipart/alternative;
+	boundary="Apple-Mail=_3020E3D9-EAF5-486F-A3B0-510C57BC9648"
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3864.600.51.1.1\))
+Subject: =?utf-8?Q?Weekly_Brew_Diff_=E2=80=94_NLMacMiniM1_vs_NLMacbookProM?=
+ =?utf-8?Q?3_=E2=80=94_2026-07-10?=
+X-Universally-Unique-Identifier: 2F692E75-3D3C-46A2-8A14-26BD142A63FA
+Message-Id: <C6BB9C7A-823A-411A-897E-F3171AB2E40B@gmail.com>
+Date: Fri, 10 Jul 2026 23:37:38 +1000
+To: Nick Leigh <nickleigh78@gmail.com>
+
+
+--Apple-Mail=_3020E3D9-EAF5-486F-A3B0-510C57BC9648
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
+
+
+> =F0=9F=93=A6
+> Weekly Brew Diff
+> NLMacMiniM1 vs NLMacbookProM3  =C2=B7  Friday 10 July 2026
+> =E2=9A=A0=EF=B8=8F Review needed
+> 5 package(s) outside the expected list.
+> KEY
+>=20
+> =F0=9F=96=A5=EF=B8=8F Mac Mini only (<)
+> =F0=9F=92=BB MacBook only (>)
+> =F0=9F=93=8B PACKAGES
+>=20
+> >
+> =F0=9F=92=BB brew "cairo"
+> MacBook only =E2=80=94 expected
+> >
+> =F0=9F=92=BB brew "chromaprint"
+> ordering only =E2=80=94 on both machines
+> >
+> =F0=9F=92=BB brew "e2fsprogs"
+> ordering only =E2=80=94 on both machines
+> >
+> =F0=9F=92=BB brew "exiftool"
+> ordering only =E2=80=94 on both machines
+> <
+> =F0=9F=96=A5=EF=B8=8F brew "chromaprint"
+> ordering only =E2=80=94 on both machines
+> <
+> =F0=9F=96=A5=EF=B8=8F brew "e2fsprogs"
+> ordering only =E2=80=94 on both machines
+> <
+> =F0=9F=96=A5=EF=B8=8F brew "exiftool"
+> ordering only =E2=80=94 on both machines
+> <
+> =F0=9F=96=A5=EF=B8=8F brew "libspatialite"
+> Mini only =E2=80=94 expected
+> >
+> =F0=9F=92=BB brew "tcl-tk"
+> MacBook only =E2=80=94 expected
+> <
+> =F0=9F=96=A5=EF=B8=8F vscode "github.remotehub"
+> <
+> =F0=9F=96=A5=EF=B8=8F vscode "github.vscode-github-actions"
+> <
+> =F0=9F=96=A5=EF=B8=8F vscode "github.vscode-pull-request-github"
+> <
+> =F0=9F=96=A5=EF=B8=8F vscode "ms-vscode.azure-repos"
+> <
+> =F0=9F=96=A5=EF=B8=8F vscode "ms-vscode.remote-repositories"
+> =F0=9F=93=84 RAW DIFF
+>=20
+> 3a4
+> > brew "cairo"
+> 4a6,8
+> > brew "chromaprint"
+> > brew "e2fsprogs"
+> > brew "exiftool"
+> 9,11d12
+> < brew "chromaprint"
+> < brew "e2fsprogs"
+> < brew "exiftool"
+> 15d15
+> < brew "libspatialite"
+> 20a21
+> > brew "tcl-tk"
+> 33,36d33
+> < vscode "github.remotehub"
+> < vscode "github.vscode-github-actions"
+> < vscode "github.vscode-pull-request-github"
+> < vscode "ms-vscode.azure-repos"
+> 39d35
+> < vscode "ms-vscode.remote-repositories"
+> =F0=9F=94=81  bash /usr/local/bin/sync-macs.sh =E2=80=94 sync both =
+Macs to the shared Brewfile
+> =F0=9F=93=82  /Volumes/network-ops/data/brew-sync/Brewfile =E2=80=94 =
+shared baseline
+
+--Apple-Mail=_3020E3D9-EAF5-486F-A3B0-510C57BC9648
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+	charset=utf-8
+
+<html aria-label=3D"message body"><head><meta http-equiv=3D"content-type" =
+content=3D"text/html; charset=3Dutf-8"></head><body =
+style=3D"overflow-wrap: break-word; -webkit-nbsp-mode: space; =
+line-break: after-white-space;"><div =
+class=3D"Apple-Mail-URLShareUserContentTopClass"><br></div><div =
+class=3D"Apple-Mail-URLShareWrapperClass" style=3D"position: relative =
+!important;"><blockquote type=3D"cite" style=3D"border-left-style: none; =
+color: inherit; padding: inherit; margin: inherit;">
+
+
+<meta charset=3D"utf-8">
+<style>
+=
+body{margin:0;padding:20px;background:#f0f2f5;font-family:-apple-system,Bl=
+inkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.card{max-width:580px;margin:0 =
+auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px =
+8px rgba(0,0,0,.1)}
+.hdr{background:linear-gradient(135deg,#1c1c2e 0%,#2d2d4a =
+100%);color:#fff;padding:28px}
+.hdr-icon{font-size:32px;line-height:1;margin-bottom:10px}
+.hdr-title{font-size:20px;font-weight:700;margin:0 0 =
+4px;letter-spacing:-.3px}
+.hdr-sub{font-size:13px;opacity:.6;margin:0}
+.status{display:flex;align-items:center;gap:10px;padding:14px =
+24px;background:#fafafa;border-bottom:1px solid #eee}
+.badge{display:inline-block;padding:3px =
+10px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-ok{background:#d4edda;color:#155724}
+.badge-warn{background:#fff3cd;color:#856404}
+.status-msg{font-size:13px;color:#555}
+.section{padding:20px 24px;border-bottom:1px solid #f0f0f0}
+=
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;let=
+ter-spacing:.8px;color:#aaa;margin:0 0 12px}
+.key{display:flex;gap:20px}
+=
+.key-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#44=
+4}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-mini{background:#d35400}
+.dot-book{background:#1a73c4}
+.row{display:flex;align-items:baseline;gap:8px;padding:7px =
+10px;border-radius:7px;margin-bottom:3px;font-family:'SF =
+Mono','Monaco','Menlo',monospace;font-size:13px;line-height:1.4}
+.row-mini{background:#fef0e8;color:#a83200}
+.row-book{background:#e8f0fe;color:#174ea6}
+.row-tag{font-size:11px;font-weight:700;opacity:.6;min-width:16px}
+=
+.row-note{font-size:11px;color:#bbb;font-style:italic;font-family:-apple-s=
+ystem,sans-serif;margin-left:4px}
+=
+.raw{background:#1c1c2e;color:#c8c8e0;border-radius:8px;padding:16px;font-=
+family:'SF =
+Mono','Monaco','Menlo',monospace;font-size:12px;line-height:1.7;white-spac=
+e:pre;overflow-x:auto}
+.raw-mini{color:#e07050}
+.raw-book{color:#5b9bd5}
+.ok-body{padding:40px 24px;text-align:center}
+.ok-icon{font-size:44px;margin-bottom:12px}
+.ok-title{font-size:16px;font-weight:600;color:#333;margin-bottom:6px}
+.ok-sub{font-size:13px;color:#888}
+.footer{padding:16px =
+24px;background:#fafafa;font-size:12px;color:#888;line-height:2}
+.footer code{background:#eee;padding:2px =
+6px;border-radius:4px;font-family:'SF =
+Mono',monospace;font-size:11px;color:#444}
+</style>
+
+
+<div class=3D"card">
+<div class=3D"hdr"><div class=3D"hdr-icon">=F0=9F=93=A6</div><p =
+class=3D"hdr-title">Weekly Brew Diff</p><p class=3D"hdr-sub">NLMacMiniM1 =
+vs NLMacbookProM3 &nbsp;=C2=B7&nbsp; Friday 10 July 2026</p></div>
+<div class=3D"status"><span class=3D"badge badge-warn">=E2=9A=A0=EF=B8=8F =
+Review needed</span><span class=3D"status-msg">5 package(s) outside the =
+expected list.</span></div>
+<div class=3D"section">
+<p class=3D"section-label">Key</p>
+<div class=3D"key">
+<div class=3D"key-item"><div class=3D"dot dot-mini"></div>=F0=9F=96=A5=EF=B8=
+=8F Mac Mini only (&lt;)</div>
+<div class=3D"key-item"><div class=3D"dot dot-book"></div>=F0=9F=92=BB =
+MacBook only (&gt;)</div>
+</div></div>
+<div class=3D"section"><p class=3D"section-label">=F0=9F=93=8B =
+Packages</p><div class=3D"row row-book"><span =
+class=3D"row-tag">&gt;</span><span>=F0=9F=92=BB brew "cairo"</span><span =
+class=3D"row-note">MacBook only =E2=80=94 expected</span></div><div =
+class=3D"row row-book"><span class=3D"row-tag">&gt;</span><span>=F0=9F=92=BB=
+ brew "chromaprint"</span><span class=3D"row-note">ordering only =E2=80=94=
+ on both machines</span></div><div class=3D"row row-book"><span =
+class=3D"row-tag">&gt;</span><span>=F0=9F=92=BB brew =
+"e2fsprogs"</span><span class=3D"row-note">ordering only =E2=80=94 on =
+both machines</span></div><div class=3D"row row-book"><span =
+class=3D"row-tag">&gt;</span><span>=F0=9F=92=BB brew =
+"exiftool"</span><span class=3D"row-note">ordering only =E2=80=94 on =
+both machines</span></div><div class=3D"row row-mini"><span =
+class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F brew =
+"chromaprint"</span><span class=3D"row-note">ordering only =E2=80=94 on =
+both machines</span></div><div class=3D"row row-mini"><span =
+class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F brew =
+"e2fsprogs"</span><span class=3D"row-note">ordering only =E2=80=94 on =
+both machines</span></div><div class=3D"row row-mini"><span =
+class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F brew =
+"exiftool"</span><span class=3D"row-note">ordering only =E2=80=94 on =
+both machines</span></div><div class=3D"row row-mini"><span =
+class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F brew =
+"libspatialite"</span><span class=3D"row-note">Mini only =E2=80=94 =
+expected</span></div><div class=3D"row row-book"><span =
+class=3D"row-tag">&gt;</span><span>=F0=9F=92=BB brew =
+"tcl-tk"</span><span class=3D"row-note">MacBook only =E2=80=94 =
+expected</span></div><div class=3D"row row-mini"><span =
+class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F vscode =
+"github.remotehub"</span></div><div class=3D"row row-mini"><span =
+class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F vscode =
+"github.vscode-github-actions"</span></div><div class=3D"row =
+row-mini"><span class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F =
+vscode "github.vscode-pull-request-github"</span></div><div class=3D"row =
+row-mini"><span class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F =
+vscode "ms-vscode.azure-repos"</span></div><div class=3D"row =
+row-mini"><span class=3D"row-tag">&lt;</span><span>=F0=9F=96=A5=EF=B8=8F =
+vscode "ms-vscode.remote-repositories"</span></div></div>
+<div class=3D"section"><p class=3D"section-label">=F0=9F=93=84 Raw =
+diff</p><div class=3D"raw">3a4
+<span class=3D"raw-book">&gt; brew "cairo"</span>
+4a6,8
+<span class=3D"raw-book">&gt; brew "chromaprint"</span>
+<span class=3D"raw-book">&gt; brew "e2fsprogs"</span>
+<span class=3D"raw-book">&gt; brew "exiftool"</span>
+9,11d12
+<span class=3D"raw-mini">&lt; brew "chromaprint"</span>
+<span class=3D"raw-mini">&lt; brew "e2fsprogs"</span>
+<span class=3D"raw-mini">&lt; brew "exiftool"</span>
+15d15
+<span class=3D"raw-mini">&lt; brew "libspatialite"</span>
+20a21
+<span class=3D"raw-book">&gt; brew "tcl-tk"</span>
+33,36d33
+<span class=3D"raw-mini">&lt; vscode "github.remotehub"</span>
+<span class=3D"raw-mini">&lt; vscode =
+"github.vscode-github-actions"</span>
+<span class=3D"raw-mini">&lt; vscode =
+"github.vscode-pull-request-github"</span>
+<span class=3D"raw-mini">&lt; vscode "ms-vscode.azure-repos"</span>
+39d35
+<span class=3D"raw-mini">&lt; vscode =
+"ms-vscode.remote-repositories"</span>
+</div></div>
+<div class=3D"footer">
+=F0=9F=94=81 &nbsp;<code>bash /usr/local/bin/sync-macs.sh</code> =E2=80=94=
+ sync both Macs to the shared Brewfile<br>
+=F0=9F=93=82 =
+&nbsp;<code>/Volumes/network-ops/data/brew-sync/Brewfile</code> =E2=80=94 =
+shared baseline
+</div>
+</div>
+
+</blockquote></div></body></html>=
+
+--Apple-Mail=_3020E3D9-EAF5-486F-A3B0-510C57BC9648--
