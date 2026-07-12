@@ -8,7 +8,7 @@ com.user.brewsync.plist
 Spike & Chilli Home Network (E2) — Homebrew Brewfile Sync Agent
 =============================================================================
 
-WHAT:   Fires brew-sync.sh weekly on Sunday at 02:00.
+WHAT:   Fires brew-sync.sh weekly on Wednesday at 02:00.
         Dumps Brewfile.<ComputerName> to the NAS BrewSync folder.
 
 NOT:    Does NOT install packages. Does NOT modify other machines.
@@ -21,9 +21,10 @@ MANUAL TEST:
   launchctl kickstart gui/$(id -u)/com.user.brewsync
   ls -1t /Volumes/network-ops/logs/brew_*_sync_*.log | head -1 | xargs tail
 
-NOTE: Runs Sunday 02:00, after Saturday night's brew-update (daily 03:00
-runs Friday→Saturday night). Offset ensures update completes before sync
-captures the latest state.
+NOTE: Runs Wednesday 02:00, one hour after brew-update (Wed 01:00). The
+offset ensures the weekly upgrade completes before sync captures the
+latest state. Second job in the weekly brew pipeline:
+01:00 update → 02:00 sync → 03:00 diff, all Wednesday.
 =============================================================================
 -->
 
@@ -39,11 +40,11 @@ captures the latest state.
         <string>/usr/local/bin/brew-sync.sh</string>
     </array>
 
-    <!-- Fire weekly: Sunday (Weekday=0) at 02:00 -->
+    <!-- Fire weekly: Wednesday (Weekday=3) at 02:00 -->
     <key>StartCalendarInterval</key>
     <dict>
         <key>Weekday</key>
-        <integer>0</integer>
+        <integer>3</integer>
         <key>Hour</key>
         <integer>2</integer>
         <key>Minute</key>

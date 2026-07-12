@@ -8,8 +8,16 @@ com.user.brewupdate.plist
 Spike & Chilli Home Network (E2) — Homebrew Auto-Update Agent
 =============================================================================
 
-WHAT:   Fires brew-update.sh daily at 03:00.
+WHAT:   Fires brew-update.sh weekly on Wednesday at 01:00.
         Actions: brew update → brew upgrade → brew cleanup
+
+        Weekly (not daily): a full `brew upgrade` every night risks an
+        unattended toolchain break you can't correlate, and churns the
+        Intel Mini (permanently older macOS) with nightly upgrade failures.
+        Mid-week 01:00 means any breakage surfaces on a working morning.
+        First job in the weekly brew pipeline: 01:00 update → 02:00 sync
+        (brew-sync) → 03:00 diff (brew-diff). All on Wednesday, off the
+        Sunday NAS/opnsense-backup night.
 
 NOT:    Does NOT run brew bundle. Package management is intentional & manual.
 
@@ -30,7 +38,7 @@ INSTALLATION:
   4. Verify:
        launchctl list | grep brewupdate
 
-MANUAL TEST (don't wait for 03:00):
+MANUAL TEST (don't wait for Wed 01:00):
   launchctl kickstart gui/$(id -u)/com.user.brewupdate
   tail -f ~/Library/Logs/brew-update.log
 
@@ -39,7 +47,7 @@ RELOAD AFTER PLIST EDITS:
   launchctl load   ~/Library/LaunchAgents/com.user.brewupdate.plist
 
 NOTE: User agents fire only while the user session is active. If the Mac
-is asleep at 03:00 the job fires at next wake — this is expected behaviour
+is asleep at 01:00 the job fires at next wake — this is expected behaviour
 for a home Mac. ThrottleInterval prevents double-fire within the window.
 =============================================================================
 -->
@@ -56,16 +64,18 @@ for a home Mac. ThrottleInterval prevents double-fire within the window.
         <string>/usr/local/bin/brew-update.sh</string>
     </array>
 
-    <!-- Fire daily at 03:00 -->
+    <!-- Fire weekly: Wednesday (Weekday=3) at 01:00 -->
     <key>StartCalendarInterval</key>
     <dict>
-        <key>Hour</key>
+        <key>Weekday</key>
         <integer>3</integer>
+        <key>Hour</key>
+        <integer>1</integer>
         <key>Minute</key>
         <integer>0</integer>
     </dict>
 
-    <!-- Prevent double-fire within 1 hour (e.g. wake from sleep near 03:00) -->
+    <!-- Prevent double-fire within 1 hour (e.g. wake from sleep near 01:00) -->
     <key>ThrottleInterval</key>
     <integer>3600</integer>
 

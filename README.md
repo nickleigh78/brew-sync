@@ -27,11 +27,17 @@ Curate the shared Brewfile to exclude packages requiring newer macOS.
 
 | Script | Trigger | Machine(s) | What it does |
 |---|---|---|---|
-| `brew-update.sh` | launchd daily 03:00 | all 3 | update + upgrade + cleanup |
-| `brew-sync.sh` | launchd weekly Sun 02:00 | all 3 | dump `Brewfile.<MachineName>` to NAS |
+| `brew-update.sh` | launchd weekly Wed 01:00 | all 3 | update + upgrade + cleanup |
+| `brew-sync.sh` | launchd weekly Wed 02:00 | all 3 | dump `Brewfile.<MachineName>` to NAS |
 | `brew-bundle-install.sh` | **manual only** | all 3 | install from shared Brewfile on this Mac |
 | `sync-macs.sh` | **manual only** | MacBook or Mini | install shared Brewfile on BOTH Macs via SSH |
-| `brew-diff-email.sh` | launchd weekly Sun 04:00 | MacBook only | diff both Brewfiles, send HTML email |
+| `brew-diff-email.sh` | launchd weekly Wed 03:00 | MacBook only | diff both Brewfiles, send HTML email |
+
+The three scheduled jobs form one weekly pipeline on **Wednesday**, staggered
+one hour apart so each stage feeds the next: **01:00** update/upgrade →
+**02:00** Brewfile snapshot → **03:00** diff email. It runs mid-week (not
+Sunday) to keep it off the Sunday NAS/opnsense-backup night and so any
+upgrade breakage surfaces on a working morning rather than over a weekend.
 | `migrate-brewfiles.sh` | one-time (done) | — | moved Brewfiles from old NAS path to network-ops |
 
 ---

@@ -8,15 +8,16 @@ com.user.brewdiff.plist
 Spike & Chilli Home Network (E2) — Weekly Brew Diff Email Agent
 =============================================================================
 
-WHAT:   Fires brew-diff-email.sh weekly on Sunday at 04:00.
+WHAT:   Fires brew-diff-email.sh weekly on Wednesday at 03:00.
         Diffs Brewfile.NLMacMiniM1 vs Brewfile.NLMacbookProM3 from
         network-ops/data/brew-sync/ and emails a styled HTML summary.
         Sends a heartbeat "all in sync" email if no differences found.
 
 NOT:    Does NOT install packages. Does NOT modify Brewfiles.
 
-SCHEDULE: Sunday 04:00 — 2 hours after brew-sync (02:00) so Brewfiles
-          are freshly dumped before the diff runs.
+SCHEDULE: Wednesday 03:00 — 1 hour after brew-sync (02:00) so Brewfiles
+          are freshly dumped before the diff runs. Last job in the weekly
+          brew pipeline: 01:00 update → 02:00 sync → 03:00 diff, all Wed.
 
 DEPLOY on NLMacMiniM1 (primary — always home):
   1. sudo cp scripts/brew-diff-email.sh /usr/local/bin/brew-diff-email.sh
@@ -28,7 +29,7 @@ DEPLOY on NLMacMiniM1 (primary — always home):
   3. Verify:
      launchctl list | grep brewdiff
 
-MANUAL TEST (don't wait for Sunday 04:00):
+MANUAL TEST (don't wait for Wed 03:00):
   launchctl kickstart gui/$(id -u)/com.user.brewdiff
   tail -f /Volumes/network-ops/logs/brew_NLMacMiniM1_diff_*.log
 
@@ -53,13 +54,13 @@ NOTE: First run requires approving Mail.app Automation permission:
         <string>/usr/local/bin/brew-diff-email.sh</string>
     </array>
 
-    <!-- Fire weekly: Sunday (Weekday=0) at 04:00 -->
+    <!-- Fire weekly: Wednesday (Weekday=3) at 03:00 -->
     <key>StartCalendarInterval</key>
     <dict>
         <key>Weekday</key>
-        <integer>0</integer>
+        <integer>3</integer>
         <key>Hour</key>
-        <integer>4</integer>
+        <integer>3</integer>
         <key>Minute</key>
         <integer>0</integer>
     </dict>

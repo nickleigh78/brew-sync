@@ -35,11 +35,11 @@ No Synology Drive fallback — the dump simply waits until home.
 
 | Script | Type | What it does |
 |---|---|---|
-| `brew-sync.sh` | Automated (weekly) | Dumps per-machine Brewfile to network-ops |
-| `brew-update.sh` | Automated (daily) | brew update → upgrade → cleanup |
+| `brew-sync.sh` | Automated (weekly, Wed 02:00) | Dumps per-machine Brewfile to network-ops |
+| `brew-update.sh` | Automated (weekly, Wed 01:00) | brew update → upgrade → cleanup |
 | `brew-bundle-install.sh` | Manual | Installs shared Brewfile on this machine only |
 | `sync-macs.sh` | Manual | Installs shared Brewfile on both Macs via SSH |
-| `brew-diff-email.sh` | Automated (weekly) | Diffs both Brewfiles, emails HTML report |
+| `brew-diff-email.sh` | Automated (weekly, Wed 03:00) | Diffs both Brewfiles, emails HTML report |
 | `migrate-brewfiles.sh` | One-time | Moves Brewfiles from old NAS path to network-ops |
 
 ## Logs
