@@ -26,10 +26,13 @@ GitHub mirror is appropriate (unlike opnsense-config, mount-nas-locations).
 Brewfile.MZMacMini is not yet migrated to network-ops (MZMacMini deployment
 is a separate future session given its older-macOS constraints).
 
-If the MacBook is away from home and /Volumes/network-ops is not mounted,
-brew-sync.sh skips the dump and appends one line to a local skip trail:
-  ~/Library/Logs/brew-sync/away.log
-No Synology Drive fallback — the dump simply waits until home.
+brew-sync.sh (2026-07-28) publishes over **SSH, not the SMB mount** — macOS TCC
+blocks the launchd context from /Volumes/network-ops (the old "-d $BREWDIR" guard
+silently skipped every scheduled run). It now generates the Brewfile + log locally
+and pushes to `nickleigh@spike-chilli.local:/volume1/network-ops` over SSH (verified
+under launchd). If the NAS is unreachable over SSH (away / down) it skips with one
+line to ~/Library/Logs/brew-sync/away.log and waits. The other network-ops scripts
+below still read/write the mount.
 
 ## Scripts
 
@@ -80,8 +83,9 @@ ls -1t /Volumes/network-ops/logs/brew_NLMacMiniM1_sync_*.log | head -1 | xargs t
 - Scripts deployed to /usr/local/bin/ (fixed path, no username in path —
   consistent with the mount-nas-locations pattern).
 - Plists deployed to ~/Library/LaunchAgents/ on each Mac.
-- /Volumes/network-ops required for brew-sync.sh, brew-bundle-install.sh,
-  sync-macs.sh, and brew-diff-email.sh. mount-nas-locations handles mounting.
+- /Volumes/network-ops required for brew-bundle-install.sh, sync-macs.sh, and
+  brew-diff-email.sh (brew-sync.sh now uses SSH transport — no mount needed).
+  mount-nas-locations handles mounting.
 - sync-macs.sh requires network-ops mounted on BOTH Macs (each reads the
   shared Brewfile from its own local mount). SSH key auth configured — no
   password prompt. VS Code must be brew-managed on the remote Mac
