@@ -140,11 +140,34 @@ ssh -t nickleigh@MZMacMini.local \
 
 ## Loading launchd agents (first-time or after plist changes)
 
+**Use the installer** — it copies the right plists per machine, **strips `com.apple.quarantine`**
+(see the warning below), and reloads them:
+
+```bash
+./scripts/install-launchd-agents.sh   # run as the logged-in user, NOT sudo
+launchctl list | grep com.user.brew   # verify
+```
+
+> ### ⚠️ The quarantine gotcha (cost a real afternoon, 2026-09-21)
+> A plist copied from a NAS share or a download carries the **`com.apple.quarantine`** xattr, and
+> **launchd refuses to load a quarantined LaunchAgent.** After the macOS 27 upgrade this silently broke
+> `com.user.brewsync` + `com.user.brewupdate` on NLMacMiniM1 — they never loaded. The failure is
+> maximally misleading: `launchctl bootstrap` returns `Bootstrap failed: 5: Input/output error`,
+> **identically under sudo** (looks like permissions), `launchctl enable` doesn't help, and
+> `launchctl print gui/$UID/<label>` says the service was never registered (looks like a stale
+> registration). The tell is a trailing `@` in `ls -la` / an `xattr` listing. **Fix:**
+> `xattr -d com.apple.quarantine ~/Library/LaunchAgents/<label>.plist` — **latent on every deploy and
+> every OS upgrade** across all three Macs, so it is baked into `install-launchd-agents.sh`.
+
+Manual equivalent (if you must, e.g. on MZMacMini with no repo — note the **`xattr -d`** line):
+
 ```bash
 # MacBook / Mini (adjust list per machine — Mini has no brewdiff)
 cp launchd/com.user.brewupdate.plist ~/Library/LaunchAgents/
 cp launchd/com.user.brewsync.plist   ~/Library/LaunchAgents/
 cp launchd/com.user.brewdiff.plist   ~/Library/LaunchAgents/  # MacBook only
+
+xattr -d com.apple.quarantine ~/Library/LaunchAgents/com.user.brew*.plist 2>/dev/null || true
 
 launchctl load ~/Library/LaunchAgents/com.user.brewupdate.plist
 launchctl load ~/Library/LaunchAgents/com.user.brewsync.plist
@@ -196,7 +219,11 @@ brew list --cask | grep visual-studio-code  # confirm it's brew-managed
 
 ### Reloading agents after plist changes
 
+Prefer `./scripts/install-launchd-agents.sh` (re-copies, strips quarantine, reloads). Manual:
+
 ```bash
+cp launchd/com.user.brewupdate.plist ~/Library/LaunchAgents/
+xattr -d com.apple.quarantine ~/Library/LaunchAgents/com.user.brewupdate.plist 2>/dev/null || true
 launchctl unload ~/Library/LaunchAgents/com.user.brewupdate.plist
 launchctl load   ~/Library/LaunchAgents/com.user.brewupdate.plist
 ```
