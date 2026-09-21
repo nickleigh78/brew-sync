@@ -94,7 +94,7 @@ network-ops is not mounted; rotation applies to whichever dir is active.
 |---|---|---|---|
 | NLMacbookProM3 | all 6 in `/usr/local/bin/` | brewsync, brewupdate, brewdiff | Primary machine; diff email runs here |
 | NLMacMiniM1 | 4 in `/usr/local/bin/` | brewsync, brewupdate | No brew-diff-email (MacBook sends) |
-| MZMacMini | brew-sync.sh, brew-update.sh | brewsync, brewupdate | scp deploy only — no git repo |
+| MZMacMini | **none (isolated)** | **none** | **ISOLATED 2026-09-22 (security issue) — OUT OF SCOPE, no deploy until re-enabled.** Confirmed live: no `com.user.*` agents installed. Earlier "scp deploy — brewsync/brewupdate" was aspirational, never actually scheduled (T28/T31). Re-enable per `spike-chilli-network/decisions/mac-ssh-mesh.md`; keep MZ in `install-launchd-agents.sh` machine-detection for that future deploy. |
 
 SSH key auth is configured between MacBook and Mini (no password prompts).
 
@@ -232,7 +232,11 @@ launchctl load   ~/Library/LaunchAgents/com.user.brewupdate.plist
 
 ## MZMacMini notes
 
-- Intel, permanently on an older macOS — individual upgrade failures non-fatal
+> **ISOLATED 2026-09-22 (security issue) — OUT OF SCOPE for deployment until re-enabled.** Do not scp/
+> deploy to MZ for now. SoT: `spike-chilli-network/decisions/mac-ssh-mesh.md`. The points below are the
+> *future* deployment profile for when it is re-enabled — kept so re-onboarding is clean, not a to-do now.
+
+- Intel, permanently on an older macOS (12.7.6 Monterey, age-capped) — individual upgrade failures non-fatal
 - No git repo — deploy scripts via scp (see Deploying section above)
 - Does not mount `/Volumes/network-ops` (Nick-only share)
 - `brew-sync.sh` and `brew-update.sh` only; no sync-macs or diff email

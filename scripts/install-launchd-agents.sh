@@ -30,9 +30,15 @@ LA="$HOME/Library/LaunchAgents"
 mkdir -p "$LA"
 
 me="$(scutil --get ComputerName 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+# MZMacMini is ISOLATED (security issue, 2026-09-22) — OUT OF SCOPE for deployment
+# until re-enabled (spike-chilli-network/decisions/mac-ssh-mesh.md). Its arm is kept
+# below so re-onboarding is a one-line un-comment, but for now it refuses to install.
 case "$me" in
   nlmacbookprom3)          PLISTS="com.user.brewupdate com.user.brewsync com.user.brewdiff" ;;  # MacBook sends the diff
-  nlmacminim1|mzmacmini)   PLISTS="com.user.brewupdate com.user.brewsync" ;;                     # no brewdiff
+  nlmacminim1)             PLISTS="com.user.brewupdate com.user.brewsync" ;;                     # no brewdiff
+  mzmacmini)               echo "MZMacMini is ISOLATED (out of scope until re-enabled) — refusing to deploy." >&2
+                           echo "  Re-enable: see spike-chilli-network/decisions/mac-ssh-mesh.md, then set PLISTS here." >&2
+                           exit 0 ;;  # future: PLISTS="com.user.brewupdate com.user.brewsync"
   *) echo "warning: unrecognised machine '$me' — installing brewupdate + brewsync only" >&2
      PLISTS="com.user.brewupdate com.user.brewsync" ;;
 esac

@@ -3,7 +3,7 @@ Project: Spike & Chilli Home Network
 Epic: E2 Mac Utilities
 Role: Automated Homebrew maintenance across NLMacMiniM1 and NLMacbookProM3
 Parent planning: spike-chilli-network/instructions/master-doc.md
-Status: PRODUCTION — deployed on NLMacMiniM1, NLMacbookProM3, MZMacMini
+Status: PRODUCTION on NLMacMiniM1 + NLMacbookProM3. **MZMacMini ISOLATED 2026-09-22 (security issue) — OUT OF SCOPE, not deployed (confirmed: no agents installed; never actually scheduled — T28/T31). Re-enable per spike-chilli-network/decisions/mac-ssh-mesh.md; keep MZ in machine-detection for future.** (NB pipeline health: `brewupdate` broken + `brewdiff` dead per docs/health-check-2026-09-12.md → T31 fix.)
 
 ---
 
