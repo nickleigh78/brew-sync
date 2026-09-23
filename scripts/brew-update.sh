@@ -16,32 +16,46 @@
 # MZMacMini note: Intel + permanently older macOS. Individual package upgrade
 # failures are expected and non-fatal — logged but script continues.
 #
-# Log:      /Volumes/network-ops/logs/brew_<MACHINE>_update_<YYYY-MM-DD-HHMM>.log
-# Fallback: ~/Library/Logs/brew-update/brew_<MACHINE>_update_<YYYY-MM-DD-HHMM>.log
-#           Used when /Volumes/network-ops is not mounted (Mac away from home).
-#           brew update/upgrade/cleanup still run — only the log destination changes.
-# Rotation: newest 20 runs kept per machine (applies to whichever dir is active)
+# TRANSPORT (2026-09-24, T31): FDA-free SSH log push, not the SMB mount. The
+#   old "-d /Volumes/network-ops" guard only tested whether the mount was
+#   *visible*, not whether launchd could *write* to it — macOS TCC blocks the
+#   launchd context from the network volume, so `brew ... >> $LOG_FILE`
+#   opened an unwritable log BEFORE brew ran and the whole pipeline silently
+#   no-op'd (exit 1, `Operation not permitted`; broken since ~mid-July).
+#   Ported the brew-sync.sh (2026-07-28) fix: log LOCALLY always (launchd can
+#   always write $HOME), run brew update/upgrade/cleanup against that local
+#   log, then push the finished log to the NAS over SSH (key-based, not
+#   TCC-gated) as a best-effort step at the end. brew itself never depends on
+#   the NAS being mounted or reachable — only the log copy does.
+#
+# Log:      network-ops/logs/brew_<MACHINE>_update_<YYYY-MM-DD-HHMM>.log (pushed)
+#           Local copy always kept at ~/.local/state/brew-update/ regardless.
+# Rotation: newest 20 runs kept per machine (NAS-side and local both)
 # =============================================================================
 
-MACHINE="$(scutil --get ComputerName 2>/dev/null || echo "unknown")"
+NAS_SSH="${BREW_NAS_SSH:-nickleigh@spike-chilli.local}"
+NAS_LOGDIR="/volume1/network-ops/logs"
+SSHNAS(){ ssh -o BatchMode=yes -o ConnectTimeout=8 "$NAS_SSH" "$@"; }
 MAX_LOG_FILES=20
 
-# ---------------------------------------------------------------------------
-# Resolve log destination — network-ops preferred, local fallback when away
-# ---------------------------------------------------------------------------
-if [ -d "/Volumes/network-ops" ]; then
-    LOGDIR="/Volumes/network-ops/logs"
-else
-    LOGDIR="$HOME/Library/Logs/brew-update"
-fi
-mkdir -p "$LOGDIR"
-LOG_FILE="$LOGDIR/brew_${MACHINE}_update_$(date '+%Y-%m-%d-%H%M').log"
+MACHINE="$(scutil --get ComputerName 2>/dev/null || echo "unknown")"
 
+# Local staging — never the SMB mount (launchd can always write $HOME).
+STAGE="$HOME/.local/state/brew-update"
+mkdir -p "$STAGE"
+LOG_FILE="$STAGE/brew_${MACHINE}_update_$(date '+%Y-%m-%d-%H%M').log"
 log() { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG_FILE"; }
 
+# push the run log to the NAS (best-effort) + rotate NAS logs and local copies.
+# Best-effort by design: brew update/upgrade/cleanup already ran against the
+# local log by the time this is called, so a NAS/SSH outage never blocks them.
+push_log() {
+    SSHNAS "mkdir -p $NAS_LOGDIR && cat > $NAS_LOGDIR/$(basename "$LOG_FILE")" < "$LOG_FILE" 2>/dev/null || true
+    SSHNAS "ls -1t $NAS_LOGDIR/brew_${MACHINE}_update_*.log 2>/dev/null | tail -n +$((MAX_LOG_FILES + 1)) | xargs rm -f 2>/dev/null" 2>/dev/null || true
+    ls -1t "$STAGE"/brew_${MACHINE}_update_*.log 2>/dev/null | tail -n +$((MAX_LOG_FILES + 1)) | xargs rm -f 2>/dev/null || true
+}
+
 log "━━━ brew-update.sh starting — $MACHINE ━━━"
-[ "$LOGDIR" != "/Volumes/network-ops/logs" ] && \
-    log "  ⚠  network-ops not mounted — logging locally to $LOG_FILE"
 
 # ---------------------------------------------------------------------------
 # Detect brew binary — Apple Silicon: /opt/homebrew, Intel: /usr/local
@@ -52,6 +66,7 @@ elif [ -x "/usr/local/bin/brew" ]; then
     BREW="/usr/local/bin/brew"
 else
     log "✗ brew not found at /opt/homebrew/bin/brew or /usr/local/bin/brew"
+    push_log
     exit 1
 fi
 log "  brew: $BREW"
@@ -90,11 +105,6 @@ else
     log "⚠ brew cleanup exited non-zero — check above for detail"
 fi
 
-# ---------------------------------------------------------------------------
-# Log rotation — keep newest MAX_LOG_FILES, delete the rest
-# ---------------------------------------------------------------------------
-ls -1t "$LOGDIR"/brew_${MACHINE}_update_*.log 2>/dev/null \
-    | tail -n "+$((MAX_LOG_FILES + 1))" | xargs rm -f 2>/dev/null || true
-
 log "━━━ brew-update.sh complete ━━━"
 log ""
+push_log
