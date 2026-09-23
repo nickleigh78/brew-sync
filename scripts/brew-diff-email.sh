@@ -6,24 +6,43 @@
 # Automated — runs weekly via com.user.brewdiff (Sunday 04:00, after brew-sync
 # at 02:00 so Brewfiles are fresh).
 #
-# Reads both per-machine Brewfiles from network-ops/data/brew-sync/, diffs
+# Fetches both per-machine Brewfiles from network-ops/data/brew-sync/, diffs
 # them, and sends a styled HTML email summarising what differs.
 #
 # If the machines are identical, a heartbeat "all in sync" email is sent
 # so there is always a weekly confirmation the agent ran.
 #
-# Requires /Volumes/network-ops to be mounted. Exits cleanly if not.
+# TRANSPORT (2026-09-24, T31): FDA-free SSH, not the SMB mount. The old
+#   "-d /Volumes/network-ops" guard only checks the mount is *visible*, not
+#   writable/readable from launchd — macOS TCC blocks the launchd context
+#   from the network volume, so this script never actually ran under launchd
+#   (dead since the 2026-07-10 manual tests, ~2 months of silence). Ported
+#   the brew-sync.sh (2026-07-28) fix: fetch both Brewfiles over SSH
+#   (key-based, not TCC-gated) into a local staging dir, and log LOCALLY
+#   (launchd can always write $HOME), pushing the finished log to the NAS
+#   over SSH as a best-effort step at the end.
+#
+# ALSO FIXED (2026-09-24, T31): casing bug — this script read
+#   "Brewfile.NLMacbookProM3" (lowercase b) which does not match the file
+#   brew-sync.sh actually writes, "Brewfile.NLMacBookProM3" (ComputerName is
+#   capital-B "NLMacBookProM3"). Every diff was therefore comparing the live
+#   Mini Brewfile against a stale lowercase-b leftover from 2026-07-10
+#   instead of the current MacBook Brewfile. See NEXT.md re: deleting that
+#   stale NAS-side file (not done here — this task is repo-only).
+#
 # Requires Mail.app configured with the target email on this machine.
 # On first run: approve "Terminal wants to control Mail" in
 #   System Settings → Privacy & Security → Automation.
 #
-# Log:      /Volumes/network-ops/logs/brew_<MACHINE>_diff_<YYYY-MM-DD-HHMM>.log
-# Rotation: newest 15 runs kept
+# Log:      network-ops/logs/brew_<MACHINE>_diff_<YYYY-MM-DD-HHMM>.log (pushed)
+# Rotation: newest 15 runs kept (NAS-side and local both)
 # =============================================================================
 
-NETWORK_OPS="/Volumes/network-ops"
-BREWDIR="$NETWORK_OPS/data/brew-sync"
-LOGDIR="$NETWORK_OPS/logs"
+NAS_SSH="${BREW_NAS_SSH:-nickleigh@spike-chilli.local}"
+NAS_ROOT="/volume1/network-ops"
+NAS_BREWDIR="$NAS_ROOT/data/brew-sync"
+NAS_LOGDIR="$NAS_ROOT/logs"
+SSHNAS(){ ssh -o BatchMode=yes -o ConnectTimeout=8 "$NAS_SSH" "$@"; }
 EMAIL="nickleigh78@gmail.com"
 MAX_LOG_FILES=15
 
@@ -31,34 +50,50 @@ MACHINE="$(scutil --get ComputerName 2>/dev/null || echo "unknown")"
 DATE_DISPLAY="$(date '+%A %-d %B %Y')"
 DATE_SHORT="$(date '+%Y-%m-%d')"
 
+# Local staging — never the SMB mount (launchd can always write $HOME).
+STAGE="$HOME/.local/state/brew-diff"
+mkdir -p "$STAGE"
+LOG_FILE="$STAGE/brew_${MACHINE}_diff_$(date '+%Y-%m-%d-%H%M').log"
+
+log() {
+    printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG_FILE"
+}
+
+# push the run log to the NAS (best-effort) + rotate NAS logs and local copies.
+push_log() {
+    SSHNAS "mkdir -p $NAS_LOGDIR && cat > $NAS_LOGDIR/$(basename "$LOG_FILE")" < "$LOG_FILE" 2>/dev/null || true
+    SSHNAS "ls -1t $NAS_LOGDIR/brew_${MACHINE}_diff_*.log 2>/dev/null | tail -n +$((MAX_LOG_FILES + 1)) | xargs rm -f 2>/dev/null" 2>/dev/null || true
+    ls -1t "$STAGE"/brew_${MACHINE}_diff_*.log 2>/dev/null | tail -n +$((MAX_LOG_FILES + 1)) | xargs rm -f 2>/dev/null || true
+}
+
 # ---------------------------------------------------------------------------
-# Guard: network-ops must be mounted
+# Guard: NAS reachable over SSH? (replaces the SMB "-d $BREWDIR" mount check)
 # ---------------------------------------------------------------------------
-if [ ! -d "$BREWDIR" ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S')  ✗ /Volumes/network-ops not mounted — skipping diff email" >&2
+if ! SSHNAS true 2>/dev/null; then
+    log "✗ NAS unreachable over SSH — skipping diff email (away or NAS down)"
+    push_log
     exit 1
 fi
 
-mkdir -p "$LOGDIR"
-LOG_FILE="$LOGDIR/brew_${MACHINE}_diff_$(date '+%Y-%m-%d-%H%M').log"
-
-log() {
-    local line
-    line="$(printf '%s  %s' "$(date '+%Y-%m-%d %H:%M:%S')" "$*")"
-    printf '%s\n' "$line" | tee -a "$LOG_FILE"
-}
-
 log "━━━ brew-diff-email.sh starting — $MACHINE ━━━"
 
-MINI_FILE="$BREWDIR/Brewfile.NLMacMiniM1"
-MACBOOK_FILE="$BREWDIR/Brewfile.NLMacbookProM3"
+MINI_FILE="$STAGE/Brewfile.NLMacMiniM1"
+MACBOOK_FILE="$STAGE/Brewfile.NLMacBookProM3"
 
-for f in "$MINI_FILE" "$MACBOOK_FILE"; do
-    if [ ! -f "$f" ]; then
-        log "✗ Brewfile not found: $f"
-        exit 1
-    fi
-done
+# ---------------------------------------------------------------------------
+# Fetch both Brewfiles over SSH (not the SMB mount)
+# ---------------------------------------------------------------------------
+if ! SSHNAS "cat $NAS_BREWDIR/Brewfile.NLMacMiniM1" > "$MINI_FILE" 2>/dev/null || [ ! -s "$MINI_FILE" ]; then
+    log "✗ failed to fetch Brewfile.NLMacMiniM1 from $NAS_SSH:$NAS_BREWDIR"
+    push_log
+    exit 1
+fi
+if ! SSHNAS "cat $NAS_BREWDIR/Brewfile.NLMacBookProM3" > "$MACBOOK_FILE" 2>/dev/null || [ ! -s "$MACBOOK_FILE" ]; then
+    log "✗ failed to fetch Brewfile.NLMacBookProM3 from $NAS_SSH:$NAS_BREWDIR"
+    push_log
+    exit 1
+fi
+log "✓ fetched both Brewfiles from $NAS_SSH:$NAS_BREWDIR"
 
 # ---------------------------------------------------------------------------
 # Diff — strip any residual --describe comment lines
@@ -271,16 +306,12 @@ else
     log "✗ osascript failed — check Mail.app Automation permission in"
     log "  System Settings → Privacy & Security → Automation"
     rm -f "$HTML_FILE"
+    push_log
     exit 1
 fi
 
 rm -f "$HTML_FILE"
 
-# ---------------------------------------------------------------------------
-# Log rotation
-# ---------------------------------------------------------------------------
-ls -1t "$LOGDIR"/brew_${MACHINE}_diff_*.log 2>/dev/null \
-    | tail -n "+$((MAX_LOG_FILES + 1))" | xargs rm -f 2>/dev/null || true
-
 log "━━━ brew-diff-email.sh complete ━━━"
 log ""
+push_log
