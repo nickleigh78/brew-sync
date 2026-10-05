@@ -1,9 +1,8 @@
 # NEXT — brew-sync (T31)
 
-**State:** T31 pipeline fixes complete on branch `t31-brew-sync-fix`, pushed to `nas`.
-**Repo-only — NOT deployed to any Mac.** No sudo, no launchctl, no scp, no live
-system access was taken. This branch has NOT been merged to `main` — merge is
-Nick's review gate.
+**State:** ✅ **T31 DONE.** Fixes merged to `main` (`4a773dd`) and **deployed live on both Macs** —
+`/usr/local/bin/brew-update.sh` (M1 + MacBook) and `brew-diff-email.sh` (MacBook) verified byte-identical
+to the repo 2026-10-05; both launchd agents loaded, last exit 0. Nothing outstanding.
 
 ## What was fixed (this branch)
 
