@@ -20,7 +20,7 @@ GitHub mirror is appropriate (unlike opnsense-config, mount-nas-locations).
 /Volumes/network-ops/data/brew-sync/
 ├── Brewfile                    ← shared curated baseline (manually edited)
 ├── Brewfile.NLMacMiniM1        ← auto-generated weekly by brew-sync.sh
-└── Brewfile.NLMacbookProM3     ← auto-generated weekly by brew-sync.sh
+└── Brewfile.NLMacBookProM3     ← auto-generated weekly by brew-sync.sh
 ```
 
 Brewfile.MZMacMini is not yet migrated to network-ops (MZMacMini deployment

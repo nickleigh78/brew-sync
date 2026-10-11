@@ -24,21 +24,12 @@ to the repo 2026-10-05; both launchd agents loaded, last exit 0. Nothing outstan
    there.
 4. **`bash -n` syntax-checked** both edited scripts — both clean.
 
-## NOT done — flagged, not guessed
+## Cleanup — DONE 2026-10-11
 
-**Stale `Brewfile.NLMacbookProM3` (lowercase b) on the NAS was NOT deleted.**
-It lives at `nickleigh@spike-chilli.local:/volume1/network-ops/data/brew-sync/
-Brewfile.NLMacbookProM3` — this is **data on the NAS, not a repo file** (the repo
-only ever generates/reads it; nothing in `~/Projects/Home-Network/brew-sync` itself
-is stale). This task's hard constraint was repo-only work on local disk, so deleting
-a live NAS data file was out of scope here even though it's low-risk. Recommended:
-
-```bash
-# Confirm the stale file first (dated 2026-07-10, capital-B one should be much newer):
-ssh nickleigh@spike-chilli.local "ls -la /volume1/network-ops/data/brew-sync/Brewfile.NLMac*"
-# If confirmed stale, delete it:
-ssh nickleigh@spike-chilli.local "rm /volume1/network-ops/data/brew-sync/Brewfile.NLMacbookProM3"
-```
+- Stale NAS `Brewfile.NLMacbookProM3` (lowercase b, 2026-07-10) **deleted** (Nick-approved).
+- Old local fallback logs on NLMacMiniM1 deleted: `~/Library/Logs/brew-update/` (Jul) and
+  `~/Library/Logs/brew-sync/away.log` (Aug). brew-sync.sh recreates away.log on demand.
+- First full post-T31 weekly cycle (Wed 2026-10-07) verified complete on both Macs.
 
 ## Exact remaining steps for Nick (deploy — live-box, needs local sudo)
 
